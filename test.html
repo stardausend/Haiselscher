@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Der allerechte Haiselscher 2024 Schorle-Zähler</title>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f9f9f9; 
+            color: #333; 
+        }
+        header {
+            background-color: #4CAF50; 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        h1 { 
+            margin: 0; 
+            font-size: 2.5em; 
+        }
+        h2 { 
+            color: #4CAF50; 
+        }
+        .container { 
+            width: 90%; 
+            max-width: 800px; 
+            margin: 20px auto; 
+            background: white; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            padding: 20px; 
+        }
+        input { 
+            margin-right: 10px; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            width: calc(50% - 20px); 
+        }
+        button { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 5px; 
+            background-color: #4CAF50; 
+            color: white; 
+            cursor: pointer; 
+            transition: background-color 0.3s; 
+        }
+        button:hover { 
+            background-color: #45a049; 
+        }
+        table { 
+            margin-top: 20px; 
+            border-collapse: collapse; 
+            width: 100%; 
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #4CAF50; 
+            color: white; 
+        }
+        img {
+            max-width: 100%; 
+            border-radius: 10px; 
+            margin: 20px 0; 
+        }
+        @media (max-width: 600px) {
+            h1 { 
+                font-size: 2em; 
+            }
+            input { 
+                width: 100%; 
+                margin: 5px 0; 
+            }
+            button { 
+                width: 100%; 
+                margin: 5px 0; 
+            }
+            table th, table td { 
+                font-size: 0.9em; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Der allerechte Haiselscher 2024 Schorle-Zähler</h1>
+    </header>
+    <div class="container">
+        <p>Trage hier deinen Namen und die Anzahl der getrunkenen Schorle ein:<br><br>Es zählen auch andere diverse 0,5er Getränke mit Alkohol!</p>
+        <input type="text" id="nameInput" placeholder="Dein Name" />
+        <input type="number" id="schorleInput" placeholder="Anzahl Schorle/Getränke" min="1" />
+        <button id="submitBtn">Eintragen</button>
+        <button id="reduceBtn">Anzahl verringern</button>
+
+        <h2>Teilnehmerliste</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Anzahl der Schorlen</th>
+                </tr>
+            </thead>
+            <tbody id="participantsTableBody">
+                <!-- Teilnehmer werden hier hinzugefügt -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Funktion zur Aktualisierung der Teilnehmerliste
+        function updateParticipants() {
+            const participants = JSON.parse(localStorage.getItem('participants')) || [];
+            const tableBody = document.getElementById('participantsTableBody');
+            tableBody.innerHTML = ''; // Tabelle zurücksetzen
+
+            participants.forEach(participant => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                const schorleCell = document.createElement('td');
+                nameCell.innerText = participant.name;
+                schorleCell.innerText = participant.schorlen;
+                row.appendChild(nameCell);
+                row.appendChild(schorleCell);
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Event Listener für den "Eintragen"-Button
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const name = document.getElementById('nameInput').value.trim();
+            const input = document.getElementById('schorleInput').value;
+
+            if (name && input && !isNaN(input)) {
+                const participants = JSON.parse(localStorage.getItem('participants')) || [];
+                const existingParticipant = participants.find(p => p.name === name);
+
+                if (existingParticipant) {
+                    // Erhöhe die Anzahl der Schorlen des bestehenden Teilnehmers
+                    existingParticipant.schorlen += parseInt(input);
+                } else {
+                    // Füge neuen Teilnehmer hinzu
+                    participants.push({ name: name, schorlen: parseInt(input) });
+                }
+
+                localStorage.setItem('participants', JSON.stringify(participants));
+                updateParticipants();
+                document.getElementById('nameInput').value = ''; // Eingabefeld zurücksetzen
+                document.getElementById('schorleInput').value = ''; // Eingabefeld zurücksetzen
+            } else {
+                alert('Bitte gib einen gültigen Namen und eine Zahl ein.');
+            }
+        });
+
+        // Event Listener für den "Anzahl verringern"-Button
+        document.getElementById('reduceBtn').addEventListener('click', () => {
+            const name = document.getElementById('nameInput').value.trim();
+            const input = document.getElementById('schorleInput').value;
+
+            if (name && input && !isNaN(input)) {
+                const participants = JSON.parse(localStorage.getItem('participants')) || [];
+                const existingParticipant = participants.find(p => p.name === name);
+
+                if (existingParticipant) {
+                    // Verringere die Anzahl der Schorlen des bestehenden Teilnehmers
+                    existingParticipant.schorlen -= parseInt(input);
+                    // Stelle sicher, dass die Anzahl nicht negativ wird
+                    if (existingParticipant.schorlen < 0) {
+                        existingParticipant.schorlen = 0;
+                    }
+                    localStorage.setItem('participants', JSON.stringify(participants));
+                    updateParticipants();
+                    document.getElementById('nameInput').value = ''; // Eingabefeld zurücksetzen
+                    document.getElementById('schorleInput').value = ''; // Eingabefeld zurücksetzen
+                } else {
+                    alert('Teilnehmer nicht gefunden. Bitte überprüfe den Namen.');
+                }
+            } else {
+                alert('Bitte gib einen gültigen Namen und eine Zahl ein.');
+            }
+        });
+
+        // Initiales Laden der Teilnehmerliste
+        updateParticipants();
+    </script>
+</body>
+</html>
